@@ -1,0 +1,42 @@
+{
+  "name": "@seanlatimer/opencode-git-integrity",
+  "version": "1.0.0",
+  "description": "OpenCode v2 plugin preventing coding agents from disabling or bypassing Git integrity controls (hooks, signing).",
+  "type": "module",
+  "main": "index.ts",
+  "exports": {
+    ".": "./index.ts",
+    "./git-guard.schema.json": "./git-guard.schema.json"
+  },
+  "scripts": {
+    "test": "cd test && bun test",
+    "test:integration": "bun test/integration/run.ts"
+  },
+  "keywords": [
+    "opencode",
+    "opencode-plugin",
+    "git",
+    "hooks",
+    "signing",
+    "integrity",
+    "guardrail",
+    "security"
+  ],
+  "files": [
+    "index.ts",
+    "server.ts",
+    "src",
+    "corpus",
+    "README.md",
+    "LICENSE",
+    "git-guard.schema.json"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/seanlatimer/opencode-git-integrity.git"
+  },
+  "homepage": "https://github.com/seanlatimer/opencode-git-integrity#readme",
+  "bugs": "https://github.com/seanlatimer/opencode-git-integrity/issues",
+  "author": "Sean Latimer",
+  "license": "MIT"
+}

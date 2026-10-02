@@ -1,0 +1,10 @@
+# Integration-test artifacts (scratch repos created by test/integration/run.ts)
+/test/integration/repo-*/
+/test/integration/npm-smoke-project*/
+/test/integration/audit-*.jsonl
+
+# Workspace-local tooling (not part of the package)
+/.opencode/
+
+*.tgz
+node_modules/

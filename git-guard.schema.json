@@ -1,0 +1,32 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://unpkg.com/@seanlatimer/opencode-git-integrity/git-guard.schema.json",
+  "title": "opencode-git-integrity configuration",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "enabled": { "type": "boolean", "default": true },
+    "failMode": { "type": "string", "enum": ["open", "closed"], "default": "closed" },
+    "trustRepoConfig": { "type": "boolean", "default": false, "description": "Allow project files to weaken (otherwise project scope may only raise strictness)." },
+    "strictAliases": { "type": "boolean", "default": false },
+    "protectSampleHooks": { "type": "boolean", "default": false },
+    "protectPaths": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 },
+      "default": [".git/**"],
+      "description": "Extra protected path globs (worktree-relative, * wildcard)."
+    },
+    "policy": {
+      "type": "object",
+      "additionalProperties": { "type": "string", "enum": ["allow", "ask", "deny"] },
+      "description": "Invariant ID → level. Defaults: commit.hooks.must-run=deny, push.hooks.must-run=deny, commit.signing.must-stay-enabled=deny, tag.signing.must-stay-enabled=ask, push.signing.must-stay-enabled=ask, hooks.config.frozen=deny, signing.config.frozen=deny, hooks.files.protected=deny, git.metadata.protected=deny, hookmanagers.must-run=deny, guard.self-protected=deny, plumbing.suspicious=ask, alias.unresolved=ask, git.scope.shift=ask, x-dynamic-argument=ask, parse.failed=deny."
+    },
+    "message": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "header": { "type": "string", "minLength": 1, "default": "Blocked by git-guard." }
+      }
+    }
+  }
+}
