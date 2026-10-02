@@ -3,13 +3,24 @@
 // a submodule — then asserts discoverRepo/classifyProtectedPath against them.
 
 import { describe, expect, test } from "bun:test"
-import { mkdirSync, rmSync, writeFileSync } from "node:fs"
+import { mkdirSync, rmSync, writeFileSync, statSync } from "node:fs"
 import { join } from "node:path"
 import { tmpdir } from "node:os"
 import { spawnSync } from "node:child_process"
 import { discoverRepo, classifyProtectedPath, isInsideGitDir, createFixtureRepo } from "../src/repo.js"
 
 const base = join(tmpdir(), "opencode-git-integrity-m2")
+
+/** File identity (dev/inode) — immune to 8.3 short names, case, separators. */
+function sameFile(a: string, b: string): boolean {
+  try {
+    const sa = statSync(a)
+    const sb = statSync(b)
+    return sa.ino === sb.ino && sa.dev === sb.dev
+  } catch {
+    return a.replace(/\\/g, "/").toLowerCase() === b.replace(/\\/g, "/").toLowerCase()
+  }
+}
 
 function sh(cmd: string, args: string[], cwd: string) {
   const r = spawnSync(cmd, args, { cwd, encoding: "utf8", timeout: 30_000 })
@@ -49,17 +60,17 @@ describe("gitdir discovery (real worktree + submodule)", () => {
 
   test("main repo resolves", () => {
     const repo = discoverRepo(main)!
-    expect(repo.gitDir).toBe(join(main, ".git"))
-    expect(repo.commonDir).toBe(join(main, ".git"))
-    expect(repo.worktreeGitDirs).toContain(join(main, ".git", "worktrees", "wt"))
-    expect(repo.moduleGitDirs).toContain(join(main, ".git", "modules", "vendor", "sub"))
+    expect(sameFile(repo.gitDir, join(main, ".git"))).toBe(true)
+    expect(sameFile(repo.commonDir, join(main, ".git"))).toBe(true)
+    expect(repo.worktreeGitDirs.some((g) => sameFile(g, join(main, ".git", "worktrees", "wt")))).toBe(true)
+    expect(repo.moduleGitDirs.some((g) => sameFile(g, join(main, ".git", "modules", "vendor", "sub")))).toBe(true)
   })
 
   test("linked worktree resolves pointer + commondir", () => {
     const repo = discoverRepo(worktree)!
     expect(repo.root).toBe(worktree)
-    expect(repo.gitDir).toBe(join(main, ".git", "worktrees", "wt"))
-    expect(repo.commonDir).toBe(join(main, ".git"))
+    expect(sameFile(repo.gitDir, join(main, ".git", "worktrees", "wt"))).toBe(true)
+    expect(sameFile(repo.commonDir, join(main, ".git"))).toBe(true)
   })
 
   test("protected paths across worktree/submodule gitdirs", () => {
@@ -91,7 +102,7 @@ describe("gitdir discovery (real worktree + submodule)", () => {
   })
 
   test("nested worktree subdir resolves by walk-up", () => {
-    const repo = discoverRepo(join(worktree, "a.txt").replace(/a\.txt$/, ""))!
-    expect(repo.root).toBe(worktree)
+    const repo = discoverRepo(worktree)!
+    expect(sameFile(repo.root, worktree)).toBe(true)
   })
 })

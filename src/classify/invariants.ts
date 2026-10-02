@@ -6,6 +6,7 @@ import { ConfigDelta, Finding, GitInvocation } from "../types.js"
 import { resolve } from "node:path"
 import { gitBool } from "../git/booleans.js"
 import { RepoState, commitSigningEnabled, tagSigningEnabled, pushSigningEnabled, hooksPathCurrent, protectedFromOrigin } from "../state.js"
+import { normPath } from "../repo.js"
 import { EnvAnalysis } from "./env.js"
 import { MANAGER_ENV_RULES, managerEnvFinding } from "./managers.js"
 import type { ClassifierDeps } from "./shell.js"
@@ -64,7 +65,10 @@ function samePath(a: string, b: string): boolean {
 }
 
 function sameGitDir(given: string, st: RepoState): boolean {
-  return samePath(resolve(st.root ?? ".", given), st.gitDir!)
+  // resolve relative --git-dir against the repo root; drive-letter/absolute
+  // forms pass through normPath untouched so both sides compare identically
+  const g = /^(?:[a-z]:[\\/]|\/|\\\\)/i.test(given) ? given : resolve(st.root ?? ".", given)
+  return samePath(normPath(g), normPath(st.gitDir!))
 }
 
 export function evaluateGit(

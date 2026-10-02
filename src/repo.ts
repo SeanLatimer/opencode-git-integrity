@@ -108,7 +108,12 @@ function collectModules(modulesDir: string): string[] {
 export type ProtectionKind = "metadata" | "hooks" | "sample" | "user"
 
 export function normPath(p: string): string {
-  return resolve(p).replace(/\\/g, "/").toLowerCase().replace(/\/+$/, "")
+  const s = p.replace(/\\/g, "/")
+  // drive-letter paths are absolute on every platform for our purposes —
+  // POSIX path.resolve() would mangle them relative to cwd (fixture stability)
+  const absolute = /^(?:[a-z]:\/|\/|\/\/|\\\\)/i.test(s)
+  const resolved = absolute ? s : resolve(s).replace(/\\/g, "/")
+  return resolved.toLowerCase().replace(/\/+$/, "")
 }
 
 function insideDir(p: string, dir: string): boolean {
