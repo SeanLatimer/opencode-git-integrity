@@ -6,10 +6,14 @@
 import { existsSync, readFileSync, readdirSync, statSync, realpathSync } from "node:fs"
 import { join, resolve, dirname } from "node:path"
 
+// realpathSync.native expands Windows 8.3 short-name components (RUNNER~1 →
+// runneradmin); the JS fallback does not — always prefer the native variant.
+const realpathNative = (realpathSync as unknown as { native?: typeof realpathSync }).native ?? realpathSync
+
 /** Collapse 8.3 short-name / long-name / symlink divergence between sources. */
 function canonical(p: string): string {
   try {
-    return realpathSync(p)
+    return realpathNative(p)
   } catch {
     return p
   }

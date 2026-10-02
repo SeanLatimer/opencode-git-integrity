@@ -11,7 +11,9 @@ import { discoverRepo, classifyProtectedPath, isInsideGitDir, createFixtureRepo 
 
 // canonical tmp root: runners hand out 8.3 short names (RUNNER~1) while git
 // writes long forms into its files — build fixtures from the long form
-const base = join(realpathSync(tmpdir()), "opencode-git-integrity-m2")
+// (realpathSync.native expands 8.3; the plain JS variant does not)
+const realpathNative = (realpathSync as unknown as { native?: typeof realpathSync }).native ?? realpathSync
+const base = join(realpathNative(tmpdir()), "opencode-git-integrity-m2")
 
 /** File identity (dev/inode) — immune to 8.3 short names, case, separators. */
 function sameFile(a: string, b: string): boolean {
