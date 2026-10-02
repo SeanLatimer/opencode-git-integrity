@@ -77,16 +77,23 @@ describe("gitdir discovery (real worktree + submodule)", () => {
 
   test("protected paths across worktree/submodule gitdirs", () => {
     const fromWorktree = discoverRepo(worktree)!
-    expect(classifyProtectedPath(join(main, ".git", "config"), fromWorktree)).toBe("metadata")
-    expect(classifyProtectedPath(join(main, ".git", "worktrees", "wt", "config.worktree"), fromWorktree)).toBe("metadata")
-    expect(classifyProtectedPath(join(main, ".git", "modules", "vendor", "sub", "config"), fromWorktree)).toBe("metadata")
-    expect(classifyProtectedPath(join(main, ".git", "modules", "vendor", "sub", "hooks", "pre-commit"), fromWorktree)).toBe("hooks")
-    expect(classifyProtectedPath(join(main, ".git", "modules", "vendor", "sub", "hooks", "pre-commit.sample"), fromWorktree)).toBe("sample")
-    expect(classifyProtectedPath(join(main, ".git", "hooks", "pre-commit"), fromWorktree)).toBe("hooks")
-    expect(classifyProtectedPath(join(worktree, ".git"), fromWorktree)).toBe("metadata") // pointer file
-    expect(classifyProtectedPath(join(main, ".git", "index"), fromWorktree)).toBeNull() // write-precise: not a root
-    expect(isInsideGitDir(join(main, ".git", "index"), fromWorktree)).toBe(true) // destructive-broad
-    expect(classifyProtectedPath(join(worktree, "src", "index.ts"), fromWorktree)).toBeNull()
+    try {
+      expect(classifyProtectedPath(join(main, ".git", "config"), fromWorktree)).toBe("metadata")
+      expect(classifyProtectedPath(join(main, ".git", "worktrees", "wt", "config.worktree"), fromWorktree)).toBe("metadata")
+      expect(classifyProtectedPath(join(main, ".git", "modules", "vendor", "sub", "config"), fromWorktree)).toBe("metadata")
+      expect(classifyProtectedPath(join(main, ".git", "modules", "vendor", "sub", "hooks", "pre-commit"), fromWorktree)).toBe("hooks")
+      expect(classifyProtectedPath(join(main, ".git", "modules", "vendor", "sub", "hooks", "pre-commit.sample"), fromWorktree)).toBe("sample")
+      expect(classifyProtectedPath(join(main, ".git", "hooks", "pre-commit"), fromWorktree)).toBe("hooks")
+      expect(classifyProtectedPath(join(worktree, ".git"), fromWorktree)).toBe("metadata") // pointer file
+      expect(classifyProtectedPath(join(main, ".git", "index"), fromWorktree)).toBeNull() // write-precise: not a root
+      expect(isInsideGitDir(join(main, ".git", "index"), fromWorktree)).toBe(true) // destructive-broad
+      expect(classifyProtectedPath(join(worktree, "src", "index.ts"), fromWorktree)).toBeNull()
+    } catch (error) {
+      console.error("DIAG main=", main, "worktree=", worktree)
+      console.error("DIAG repo=", JSON.stringify(fromWorktree, null, 1))
+      console.error("DIAG testpath=", join(main, ".git", "config"))
+      throw error
+    }
   })
 
   test("submodule checkout's .git pointer inside the worktree is metadata", () => {
