@@ -3,8 +3,17 @@
 // enumerates linked-worktree gitdirs and submodule gitdirs (recursively, for
 // nested modules). Pure filesystem — no git spawns (sub-millisecond budget).
 
-import { existsSync, readFileSync, readdirSync, statSync } from "node:fs"
+import { existsSync, readFileSync, readdirSync, statSync, realpathSync } from "node:fs"
 import { join, resolve, dirname } from "node:path"
+
+/** Collapse 8.3 short-name / long-name / symlink divergence between sources. */
+function canonical(p: string): string {
+  try {
+    return realpathSync(p)
+  } catch {
+    return p
+  }
+}
 
 export type GitRepo = {
   /** Worktree root where `.git` was found. */
@@ -56,13 +65,15 @@ export function createFixtureRepo(parts: {
 }
 
 function buildRepo(root: string, gitDir: string): GitRepo {
-  const commonDir = readCommonDir(gitDir)
+  const cRoot = canonical(root)
+  const cGitDir = canonical(gitDir)
+  const commonDir = canonical(readCommonDir(cGitDir))
   return {
-    root,
-    gitDir,
+    root: cRoot,
+    gitDir: cGitDir,
     commonDir,
-    worktreeGitDirs: listDirs(join(commonDir, "worktrees")),
-    moduleGitDirs: collectModules(join(commonDir, "modules")),
+    worktreeGitDirs: listDirs(join(commonDir, "worktrees")).map(canonical),
+    moduleGitDirs: collectModules(join(commonDir, "modules")).map(canonical),
   }
 }
 

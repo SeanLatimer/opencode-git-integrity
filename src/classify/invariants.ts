@@ -65,9 +65,14 @@ function samePath(a: string, b: string): boolean {
 }
 
 function sameGitDir(given: string, st: RepoState): boolean {
-  // resolve relative --git-dir against the repo root; drive-letter/absolute
-  // forms pass through normPath untouched so both sides compare identically
-  const g = /^(?:[a-z]:[\\/]|\/|\\\\)/i.test(given) ? given : resolve(st.root ?? ".", given)
+  // resolve relative --git-dir against the repo root; drive-letter roots
+  // (test fixtures) join lexically — POSIX path.resolve would mangle them
+  const root = st.root ?? "."
+  const g = /^(?:[a-z]:[\\/]|\/|\\\\)/i.test(given)
+    ? given
+    : /^(?:[a-z]:[\\/])/i.test(root)
+      ? root.replace(/[\\/]+$/, "") + "/" + given
+      : resolve(root, given)
   return samePath(normPath(g), normPath(st.gitDir!))
 }
 
