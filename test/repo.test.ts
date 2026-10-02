@@ -3,13 +3,15 @@
 // a submodule — then asserts discoverRepo/classifyProtectedPath against them.
 
 import { describe, expect, test } from "bun:test"
-import { mkdirSync, rmSync, writeFileSync, statSync } from "node:fs"
+import { mkdirSync, rmSync, writeFileSync, statSync, realpathSync } from "node:fs"
 import { join } from "node:path"
 import { tmpdir } from "node:os"
 import { spawnSync } from "node:child_process"
 import { discoverRepo, classifyProtectedPath, isInsideGitDir, createFixtureRepo } from "../src/repo.js"
 
-const base = join(tmpdir(), "opencode-git-integrity-m2")
+// canonical tmp root: runners hand out 8.3 short names (RUNNER~1) while git
+// writes long forms into its files — build fixtures from the long form
+const base = join(realpathSync(tmpdir()), "opencode-git-integrity-m2")
 
 /** File identity (dev/inode) — immune to 8.3 short names, case, separators. */
 function sameFile(a: string, b: string): boolean {
