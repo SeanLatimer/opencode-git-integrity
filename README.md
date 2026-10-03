@@ -10,6 +10,7 @@ Decisions are made **semantically, by invariant** — never by substring:
 
 - shell commands are parsed (POSIX / PowerShell / cmd dialects, selected automatically) into a git argument model that knows `-n` means `--dry-run` on `push`, `--no-stat` on `merge`, and *only* `--no-verify` on `commit`; that `git -c k=v commit` is config but `git commit -c <sha>` is not; and that a commit *message* containing `--no-verify` is data, not a flag.
 - enforcement happens through OpenCode's native permission pipeline (`permission.evaluate`): the guard sets **allow / ask / deny** with a token-precise explanation, so `ask`-level findings surface as real approval prompts.
+- the complete shell script is retained per tool call and checked alongside permission resources, which can omit PowerShell environment assignments or truncate arguments. Dry-run commands are checked by the same policy.
 - Code Mode (`execute`) has no permission pipeline (verified empirically) — it is covered separately by analyzing spawn calls in the submitted JavaScript.
 
 Every equivalent weakening of an invariant produces the same decision, whichever of these channels it arrives through:
